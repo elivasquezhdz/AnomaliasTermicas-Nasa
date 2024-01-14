@@ -1,0 +1,1 @@
+# AnomaliasTermicas-Nasa
