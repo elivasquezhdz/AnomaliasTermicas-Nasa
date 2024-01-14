@@ -52,7 +52,7 @@ with st.container():
     st.write("---")
     st.header("fuente de datos")
     image_column, text_column = st.columns((1,2))
-    with image_column:
+    #with image_column:
         #st.image(image_video)
     with text_column:
         st.write(
