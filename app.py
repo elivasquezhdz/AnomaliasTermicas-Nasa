@@ -11,7 +11,7 @@ def load_lottieurl(url):
     return r.json()
 
 lottie_coding = load_lottieurl("https://lottie.host/9a195c7f-0740-45e6-be24-e99392f8c207/c6FKaU0eME.json")
-image_video = Image.open('/content/AMEA.png')
+#image_video = Image.open('/content/AMEA.png')
 
 st.set_page_config(page_title="Anomalias Termicas", page_icon=":ocean:", layout="wide")
 
@@ -53,7 +53,7 @@ with st.container():
     st.header("fuente de datos")
     image_column, text_column = st.columns((1,2))
     with image_column:
-        st.image(image_video)
+        #st.image(image_video)
     with text_column:
         st.write(
             """
