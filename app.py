@@ -2,6 +2,72 @@ import streamlit as st
 import requests
 from streamlit_lottie import st_lottie
 from PIL import Image
+import json
+import pandas as pd
+import plotly.express as px
+
+ciudades = {
+    "Acapulco, Mex" : [16.793542,-99.8349],
+    "San Jose, Gua" : [13.9234, -91.1628],
+    "Acajutla, Sal" : [13.5242, -89.7991],
+    "San Rafael Sur, Nic" : [11.8274, -86.5377],
+    "Parrita, Cos":[9.4839, -84.2999],
+    "Pedasi, Pan":[7.4261, -80.0924],
+    "Buenaventura , Col":[3.8461, -77.3266],
+    "Perdernales, Ecu":[0.0876, -80.0691],
+    "Colán, Per":[-5.0078, -81.0684],
+    "Lima, Per":[-12.1085, -77.0831],
+    "Antofagasta, Chi" :[-23.6333, -70.4103],
+}
+
+epocas = [
+    ['19810101', '19911231'],
+    ['19920101', '20021231'],
+    ['20030101', '20131231'],
+    ['20140101', '20230810'],
+]
+
+url = "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M&community=RE&longitude=-70.4103&latitude=-23.6333&start=19810101&end=19911231&format=JSON"
+
+def get_datos(ciudades,epocas):
+    df = pd.DataFrame()
+    for ciudad, valores in ciudades.items():
+        for epoca in epocas:
+            print(ciudad + str(epoca))
+            url = "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M&community=RE&longitude="+ str(valores[1]) +"&latitude=" + str(valores[0]) + "&start="+str(epoca[0])+"&end="+str(epoca[1])+"&format=JSON"
+            #print(url)
+            r = requests.get(url)
+            if r.status_code == 200:
+                df_q = pd.DataFrame(r.json()['properties']['parameter']['T2M'], index=[0]).T.reset_index()
+                print(df_q.head())
+                df_q.columns = ['Fecha', 'Temp']
+                df_q['Ciudad'] = ciudad
+                df_q['Latitud']= valores[0]
+                df_q['Longitud']= valores[1]
+                df = pd.concat([df,df_q])
+            else:
+                continue
+    df['Fecha'] = pd.to_datetime(df['Fecha'])
+    df['Año'] = df['Fecha'].dt.year
+    df['Mes'] = df['Fecha'].dt.month
+    return df
+
+df = pd.read_csv("Historico_OP_litoral.csv")
+df['Fecha'] = pd.to_datetime(df['Fecha'])
+df['Año'] = df['Fecha'].dt.year
+df['Mes'] = df['Fecha'].dt.month
+
+
+avg_df = df.groupby([df['Ciudad'], df['Año']], as_index = False).mean()
+avg_df = avg_df.iloc[:,0:3]
+avg_df.columns = ['Ciudad', 'Año', 'Temp_avg']
+df = pd.merge(df,avg_df)
+
+df['Anomalia'] = df['Temp'] - df['Temp_avg']
+
+
+fig1 = px.line(df, x="Fecha", y="Anomalia", color='Ciudad')
+fig2 = px.scatter(df, x="Año", y="Temp_avg", trendline="ols", color='Ciudad')
 
 # Función para nuestra animación
 def load_lottieurl(url):
@@ -36,18 +102,10 @@ with st.container():
 
 with st.container():
     st.write('---')
-    left_column, right_column = st.columns(2)
-    with left_column:
-        st.header('Acá iran los filtros')
-        if st.button('Ayudas o que?'):
-            st.write('Eso chingao')
-        else:
-            st.write('Ve a calentar el planeta')
-        st.write("[NASA](https://power.larc.nasa.gov)")
-
-    with right_column:
-        st_lottie(lottie_coding, height=300,key="coding")
-
+    
+    st_lottie(lottie_coding, height=300,key="coding")
+    st.plotly_chart(fig1, use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True)
 with st.container():
     st.write("---")
     st.header("fuente de datos")
@@ -63,3 +121,7 @@ with st.container():
             """
         )
         st.markdown("[Ver video...](https://youtu.be/ujsjkBNlY9c?si=XJwibIgOOs12iWyV)")
+
+
+        st.markdown(
+            "[The POWER Project](https://power.larc.nasa.gov/)")

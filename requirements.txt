@@ -1,3 +1,5 @@
 streamlit-lottie
 streamlit
 pillow
+plotly
+pandas==1.5.3
