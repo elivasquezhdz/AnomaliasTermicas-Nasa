@@ -1,5 +1,6 @@
 streamlit-lottie
 streamlit
 pillow
+statsmodels
 plotly==5.15.0
 pandas==1.5.3
