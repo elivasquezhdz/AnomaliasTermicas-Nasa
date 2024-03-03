@@ -5,6 +5,7 @@ from PIL import Image
 import json
 import pandas as pd
 import plotly.express as px
+import datetime as dt
 
 ciudades = {
     "Acapulco, Mex" : [16.793542,-99.8349],
@@ -66,8 +67,6 @@ df = pd.merge(df,avg_df)
 df['Anomalia'] = df['Temp'] - df['Temp_avg']
 
 
-fig1 = px.line(df, x="Fecha", y="Anomalia", color='Ciudad')
-fig2 = px.scatter(df, x="Año", y="Temp_avg", trendline="ols", color='Ciudad')
 
 # Función para nuestra animación
 def load_lottieurl(url):
@@ -81,7 +80,29 @@ lottie_coding = load_lottieurl("https://lottie.host/9a195c7f-0740-45e6-be24-e993
 
 st.set_page_config(page_title="Anomalias Termicas", page_icon=":ocean:", layout="wide")
 
-a = st.sidebar.slider('Año', min_value=2000, max_value=2023)
+st.sidebar.write("Elige el año inicial y final para mostrar")
+ai = st.sidebar.slider('Año Inicial', 1981, 2023,1981)
+af = st.sidebar.slider('Año Final', 1981, 2023,2023)
+
+st.sidebar.write("Elige las ciudades")
+checkboxes = {}
+for ciudad in ciudades:
+    checkboxes[ciudad] = st.sidebar.checkbox(ciudad,value=True)
+start_date = dt.datetime(ai,1,1,0,0,0)
+end_date = dt.datetime(af,1,1,0,0,0)
+
+df = df[df['Fecha']> start_date]
+df = df[df['Fecha'] < end_date]
+
+for ciudad in checkboxes:
+    if not (checkboxes[ciudad]):
+        df= df[df['Ciudad'] != ciudad]
+
+
+
+fig1 = px.line(df, x="Fecha", y="Anomalia", color='Ciudad')
+fig2 = px.scatter(df, x="Año", y="Temp_avg", trendline="ols", color='Ciudad')
+
 
 with st.container():
     st.subheader('... 🐧 Vamos a salvar el mundo, ¿te unes? 🐧 ...')
